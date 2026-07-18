@@ -4,67 +4,163 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Student;
+use App\Models\Course;
 
 class StudentController extends Controller
 {
-    // Display all students
-    public function index()
+
+    // Display all students with search and pagination
+    public function index(Request $request)
     {
-        $students = Student::all();
+        $search = $request->search;
+
+
+        $students = Student::with('course')
+            ->when($search, function ($query) use ($search) {
+
+                $query->where('name', 'like', "%$search%")
+                      ->orWhere('email', 'like', "%$search%")
+                      ->orWhere('department', 'like', "%$search%");
+
+            })
+            ->paginate(5);
+
+
         return view('students.index', compact('students'));
     }
+
+
 
     // Show registration form
     public function create()
     {
-        return view('students.create');
+        $courses = Course::all();
+
+        return view('students.create', compact('courses'));
     }
+
+
 
     // Store student
     public function store(Request $request)
     {
         $request->validate([
+
             'name' => 'required',
             'email' => 'required|email|unique:students,email',
             'department' => 'required',
-            'semester' => 'required|integer'
+            'semester' => 'required|integer',
+            'course_id' => 'required|exists:courses,id',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+
         ]);
 
-        Student::create($request->all());
 
-        return redirect('/students')->with('success', 'Student Registered Successfully!');
+        $image = null;
+
+
+        if($request->hasFile('image'))
+        {
+            $image = $request->file('image')
+                             ->store('students','public');
+        }
+
+
+
+        Student::create([
+
+            'name' => $request->name,
+            'email' => $request->email,
+            'department' => $request->department,
+            'semester' => $request->semester,
+            'course_id' => $request->course_id,
+            'image' => $image,
+
+        ]);
+
+
+
+        return redirect()
+            ->route('students.index')
+            ->with('success','Student Registered Successfully!');
     }
+
+
+
 
     // Show edit form
-    public function edit($id)
+    public function edit(Student $student)
     {
-        $student = Student::findOrFail($id);
+        $courses = Course::all();
 
-        return view('students.edit', compact('student'));
+        return view('students.edit', compact('student','courses'));
     }
 
+
+
+
     // Update student
-    public function update(Request $request, $id)
+    public function update(Request $request, Student $student)
     {
-        $student = Student::findOrFail($id);
 
         $request->validate([
+
             'name' => 'required',
             'email' => 'required|email|unique:students,email,' . $student->id,
             'department' => 'required',
-            'semester' => 'required|integer'
+            'semester' => 'required|integer',
+            'course_id' => 'required|exists:courses,id',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+
         ]);
 
-        $student->update($request->all());
 
-        return redirect('/students')->with('success', 'Student Updated Successfully!');
+
+        $image = $student->image;
+
+
+
+        if($request->hasFile('image'))
+        {
+            $image = $request->file('image')
+                             ->store('students','public');
+        }
+
+
+
+        $student->update([
+
+            'name' => $request->name,
+            'email' => $request->email,
+            'department' => $request->department,
+            'semester' => $request->semester,
+            'course_id' => $request->course_id,
+            'image' => $image,
+
+        ]);
+
+
+
+        return redirect()
+            ->route('students.index')
+            ->with('success','Student Updated Successfully!');
     }
+
+
+
+
 
     // Delete student
-    public function destroy($id)
+    public function destroy(Student $student)
     {
-        Student::destroy($id);
 
-        return redirect('/students')->with('success', 'Student Deleted Successfully!');
+        $student->delete();
+
+
+        return redirect()
+            ->route('students.index')
+            ->with('success','Student Deleted Successfully!');
+
     }
+
 }

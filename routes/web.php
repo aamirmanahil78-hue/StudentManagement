@@ -1,38 +1,115 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PageController;
 use App\Http\Controllers\StudentController;
-use App\Models\Student;
+use App\Http\Controllers\CourseController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AdminController;
 
-Route::get('/', [PageController::class, 'home']);
 
-Route::get('/about', [PageController::class, 'about']);
-
-Route::get('/contact', [PageController::class, 'contact']);
-
-Route::get('/add-student', function () {
-
-    Student::create([
-        'name' => 'Manahil Aamir',
-        'email' => 'manahil1@gmail.com',
-        'department' => 'Software Engineering',
-        'semester' => 6
-    ]);
-
-    return "Student Added Successfully";
+Route::get('/', function () {
+    return redirect()->route('dashboard');
 });
 
-// Student CRUD Routes
 
-Route::get('/students', [StudentController::class, 'index']);
 
-Route::get('/register', [StudentController::class, 'create']);
+Route::get('/dashboard', function () {
 
-Route::post('/students', [StudentController::class, 'store']);
+    $students = \App\Models\Student::count();
+    $courses = \App\Models\Course::count();
 
-Route::get('/students/{id}/edit', [StudentController::class, 'edit']);
+    return view('dashboard', compact('students', 'courses'));
 
-Route::put('/students/{id}', [StudentController::class, 'update']);
+})->name('dashboard');
 
-Route::delete('/students/{id}', [StudentController::class, 'destroy']);
+
+
+
+// Student Routes
+
+// Everyone can view students
+
+Route::get('/students',
+[StudentController::class,'index'])
+->name('students.index');
+
+
+
+// Admin permission required for changes
+
+Route::middleware(['auth','admin'])->group(function(){
+
+
+    Route::get('/students/create',
+    [StudentController::class,'create'])
+    ->name('students.create');
+
+
+    Route::post('/students',
+    [StudentController::class,'store'])
+    ->name('students.store');
+
+
+    Route::get('/students/{student}/edit',
+    [StudentController::class,'edit'])
+    ->name('students.edit');
+
+
+    Route::put('/students/{student}',
+    [StudentController::class,'update'])
+    ->name('students.update');
+
+
+    Route::delete('/students/{student}',
+    [StudentController::class,'destroy'])
+    ->name('students.destroy');
+
+
+});
+
+
+
+// Course Routes
+
+Route::resource('courses', CourseController::class);
+
+
+
+
+// Profile Routes
+
+Route::middleware('auth')->group(function () {
+
+
+    Route::get('/profile', [ProfileController::class, 'edit'])
+        ->name('profile.edit');
+
+
+    Route::patch('/profile', [ProfileController::class, 'update'])
+        ->name('profile.update');
+
+
+    Route::delete('/profile', [ProfileController::class, 'destroy'])
+        ->name('profile.destroy');
+
+
+});
+
+
+
+
+// Admin Dashboard
+
+Route::middleware(['auth','admin'])->group(function () {
+
+
+    Route::get('/admin/dashboard',
+    [AdminController::class,'index'])
+    ->name('admin.dashboard');
+
+
+});
+
+
+
+require __DIR__.'/auth.php';
