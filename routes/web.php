@@ -12,7 +12,6 @@ Route::get('/', function () {
 });
 
 
-
 Route::get('/dashboard', function () {
 
     $students = \App\Models\Student::count();

@@ -14,9 +14,9 @@
 
         <div class="card-body">
 
-            <form action="{{ route('students.store') }}" 
-      method="POST"
-      enctype="multipart/form-data">
+            <form action="{{ route('students.store') }}"
+                  method="POST"
+                  enctype="multipart/form-data">
 
                 @csrf
 
@@ -90,7 +90,8 @@
 
                         @foreach($courses as $course)
 
-                            <option value="{{ $course->id }}">
+                            <option value="{{ $course->id }}"
+                                {{ old('course_id') == $course->id ? 'selected' : '' }}>
 
                                 {{ $course->course_name }}
 
@@ -105,26 +106,44 @@
                     @enderror
 
                 </div>
-        <div class="mb-3">
 
-    <label class="form-label">
-        Student Image
-    </label>
+                <div class="mb-3">
 
-    <input type="file"
-           name="image"
-           class="form-control">
+                    <label class="form-label">
+                        Student Image
+                    </label>
 
+                    <input type="file"
+                           name="image"
+                           class="form-control">
 
-    @error('image')
-        <small class="text-danger">
-            {{ $message }}
-        </small>
-    @enderror
+                    @error('image')
+                        <small class="text-danger">
+                            {{ $message }}
+                        </small>
+                    @enderror
 
-  </div>
+                </div>
 
-                <button class="btn btn-success">
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Upload File
+                    </label>
+
+                    <input type="file"
+                           name="file"
+                           class="form-control">
+
+                    @error('file')
+                        <small class="text-danger">
+                            {{ $message }}
+                        </small>
+                    @enderror
+
+                </div>
+
+                <button type="submit" class="btn btn-success">
 
                     Register Student
 

@@ -12,7 +12,8 @@ class Student extends Model
         'department',
         'semester',
         'course_id',
-        'image'
+        'image',
+        'file'
     ];
 
     public function course()

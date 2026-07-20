@@ -2,21 +2,19 @@
 
 @section('content')
 
-<h2>Student List</h2>
+@php
+    use Illuminate\Support\Facades\Storage;
+@endphp
 
+<h2>Student List</h2>
 
 @if(Auth::check() && Auth::user()->role == 'admin')
 
-<a href="{{ route('students.create') }}" 
-   class="btn btn-primary mb-3">
-
+<a href="{{ route('students.create') }}" class="btn btn-primary mb-3">
     Add Student
-
 </a>
 
 @endif
-
-
 
 <!-- Search -->
 
@@ -30,8 +28,7 @@
                class="form-control"
                placeholder="Search by Name, Email, Department">
 
-
-        <button class="btn btn-dark">
+        <button type="submit" class="btn btn-dark">
             Search
         </button>
 
@@ -39,15 +36,11 @@
 
 </form>
 
-
-
-
 <table class="table table-bordered table-striped">
 
     <thead>
 
         <tr>
-
             <th>ID</th>
             <th>Image</th>
             <th>Name</th>
@@ -55,25 +48,19 @@
             <th>Department</th>
             <th>Semester</th>
             <th>Course</th>
+            <th>File</th>
             <th>Action</th>
-
         </tr>
 
     </thead>
 
-
     <tbody>
 
-    @foreach($students as $student)
+    @forelse($students as $student)
 
     <tr>
 
-
-        <td>
-            {{ $student->id }}
-        </td>
-
-
+        <td>{{ $student->id }}</td>
 
         <td>
 
@@ -92,31 +79,13 @@
 
         </td>
 
+        <td>{{ $student->name }}</td>
 
+        <td>{{ $student->email }}</td>
 
-        <td>
-            {{ $student->name }}
-        </td>
+        <td>{{ $student->department }}</td>
 
-
-
-        <td>
-            {{ $student->email }}
-        </td>
-
-
-
-        <td>
-            {{ $student->department }}
-        </td>
-
-
-
-        <td>
-            {{ $student->semester }}
-        </td>
-
-
+        <td>{{ $student->semester }}</td>
 
         <td>
 
@@ -132,81 +101,84 @@
 
         </td>
 
+        <td>
 
+            @if($student->file)
 
+                <a href="{{ Storage::url($student->file) }}"
+                   target="_blank"
+                   class="btn btn-info btn-sm">
+                    View File
+                </a>
+
+            @else
+
+                No File
+
+            @endif
+
+        </td>
 
         <td>
 
-
             @if(Auth::check() && Auth::user()->role == 'admin')
 
-
-                <a href="{{ route('students.edit',$student->id) }}"
+                <a href="{{ route('students.edit', $student->id) }}"
                    class="btn btn-warning btn-sm">
-
                     Edit
-
                 </a>
 
-
-
-                <form action="{{ route('students.destroy',$student->id) }}"
+                <form action="{{ route('students.destroy', $student->id) }}"
                       method="POST"
                       style="display:inline;">
 
                     @csrf
                     @method('DELETE')
 
-
-                    <button class="btn btn-danger btn-sm">
-
+                    <button type="submit"
+                            class="btn btn-danger btn-sm">
                         Delete
-
                     </button>
-
 
                 </form>
 
-
-
             @else
 
-
                 <span class="text-muted">
-
                     View Only
-
                 </span>
-
 
             @endif
 
-
         </td>
 
+    </tr>
+    @empty
+
+    <tr>
+
+        <td colspan="9" class="text-center">
+            No students found.
+        </td>
 
     </tr>
 
+    @endforelse
 
-    @endforeach
+
+
+
+
 
 
     </tbody>
 
-
 </table>
-
-
-
-
-<!-- Pagination -->
 
 <div class="mt-3">
 
     {{ $students->links() }}
 
 </div>
-
-
 
 @endsection

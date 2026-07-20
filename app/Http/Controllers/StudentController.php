@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Student;
 use App\Models\Course;
+use Illuminate\Support\Facades\Storage;
+
 
 class StudentController extends Controller
 {
@@ -42,48 +44,56 @@ class StudentController extends Controller
 
 
     // Store student
-    public function store(Request $request)
-    {
-        $request->validate([
+   public function store(Request $request)
+{
+    $request->validate([
 
-            'name' => 'required',
-            'email' => 'required|email|unique:students,email',
-            'department' => 'required',
-            'semester' => 'required|integer',
-            'course_id' => 'required|exists:courses,id',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        'name' => 'required',
+        'email' => 'required|email|unique:students,email',
+        'department' => 'required',
+        'semester' => 'required|integer',
+        'course_id' => 'required|exists:courses,id',
+        'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        'file' => 'nullable|mimes:pdf,doc,docx,ppt,pptx,zip|max:5120',
 
-        ]);
+    ]);
 
+    $image = null;
 
-        $image = null;
-
-
-        if($request->hasFile('image'))
-        {
-            $image = $request->file('image')
-                             ->store('students','public');
-        }
-
-
-
-        Student::create([
-
-            'name' => $request->name,
-            'email' => $request->email,
-            'department' => $request->department,
-            'semester' => $request->semester,
-            'course_id' => $request->course_id,
-            'image' => $image,
-
-        ]);
-
-
-
-        return redirect()
-            ->route('students.index')
-            ->with('success','Student Registered Successfully!');
+    if ($request->hasFile('image')) {
+        $image = $request->file('image')->store('students', 'public');
     }
+
+   $file = null;
+
+if ($request->hasFile('file')) {
+
+    $originalName = $request->file('file')->getClientOriginalName();
+
+    $file = $request->file('file')->storeAs(
+        'files',
+        $originalName,
+        'public'
+    );
+
+}
+
+    Student::create([
+
+        'name' => $request->name,
+        'email' => $request->email,
+        'department' => $request->department,
+        'semester' => $request->semester,
+        'course_id' => $request->course_id,
+        'image' => $image,
+        'file' => $file,
+
+    ]);
+
+    return redirect()
+        ->route('students.index')
+        ->with('success', 'Student Registered Successfully!');
+}
 
 
 
@@ -100,55 +110,60 @@ class StudentController extends Controller
 
 
     // Update student
-    public function update(Request $request, Student $student)
-    {
+   public function update(Request $request, Student $student)
+{
+    $request->validate([
 
-        $request->validate([
+        'name' => 'required',
+        'email' => 'required|email|unique:students,email,' . $student->id,
+        'department' => 'required',
+        'semester' => 'required|integer',
+        'course_id' => 'required|exists:courses,id',
+        'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        'file' => 'nullable|mimes:pdf,doc,docx,ppt,pptx,zip|max:5120',
 
-            'name' => 'required',
-            'email' => 'required|email|unique:students,email,' . $student->id,
-            'department' => 'required',
-            'semester' => 'required|integer',
-            'course_id' => 'required|exists:courses,id',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+    ]);
 
-        ]);
+    // Keep old image if no new image is uploaded
+    $image = $student->image;
 
+    if ($request->hasFile('image')) {
 
+        $image = $request->file('image')->store('students', 'public');
 
-        $image = $student->image;
-
-
-
-        if($request->hasFile('image'))
-        {
-            $image = $request->file('image')
-                             ->store('students','public');
-        }
-
-
-
-        $student->update([
-
-            'name' => $request->name,
-            'email' => $request->email,
-            'department' => $request->department,
-            'semester' => $request->semester,
-            'course_id' => $request->course_id,
-            'image' => $image,
-
-        ]);
-
-
-
-        return redirect()
-            ->route('students.index')
-            ->with('success','Student Updated Successfully!');
     }
 
+    // Keep old file if no new file is uploaded
+    $file = $student->file;
 
+    if ($request->hasFile('file')) {
 
+        $originalName = $request->file('file')->getClientOriginalName();
 
+        $file = $request->file('file')->storeAs(
+            'files',
+            $originalName,
+            'public'
+        );
+
+    }
+
+    $student->update([
+
+        'name' => $request->name,
+        'email' => $request->email,
+        'department' => $request->department,
+        'semester' => $request->semester,
+        'course_id' => $request->course_id,
+        'image' => $image,
+        'file' => $file,
+
+    ]);
+
+    return redirect()
+        ->route('students.index')
+        ->with('success', 'Student Updated Successfully!');
+}
 
     // Delete student
     public function destroy(Student $student)
