@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Student;
 use App\Models\Course;
-use Illuminate\Support\Facades\Storage;
 
 
 class StudentController extends Controller
@@ -17,7 +16,7 @@ class StudentController extends Controller
         $search = $request->search;
 
 
-        $students = Student::with('course')
+        $students = Student::with('courses')
             ->when($search, function ($query) use ($search) {
 
                 $query->where('name', 'like', "%$search%")
@@ -44,56 +43,84 @@ class StudentController extends Controller
 
 
     // Store student
-   public function store(Request $request)
-{
-    $request->validate([
+    public function store(Request $request)
+    {
 
-        'name' => 'required',
-        'email' => 'required|email|unique:students,email',
-        'department' => 'required',
-        'semester' => 'required|integer',
-        'course_id' => 'required|exists:courses,id',
-        'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-        'file' => 'nullable|mimes:pdf,doc,docx,ppt,pptx,zip|max:5120',
+        $request->validate([
 
-    ]);
+            'name' => 'required',
+            'email' => 'required|email|unique:students,email',
+            'department' => 'required',
+            'semester' => 'required|integer',
 
-    $image = null;
+            'courses' => 'required|array',
+            'courses.*' => 'exists:courses,id',
 
-    if ($request->hasFile('image')) {
-        $image = $request->file('image')->store('students', 'public');
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+
+            'file' => 'nullable|mimes:pdf,doc,docx,ppt,pptx,zip|max:5120',
+
+        ]);
+
+
+
+        // Upload Image
+        $image = null;
+
+        if($request->hasFile('image'))
+        {
+            $image = $request->file('image')
+                             ->store('students','public');
+        }
+
+
+
+        // Upload File
+        $file = null;
+
+        if($request->hasFile('file'))
+        {
+
+            $originalName = $request->file('file')
+                                   ->getClientOriginalName();
+
+
+            $file = $request->file('file')
+                            ->storeAs(
+                                'files',
+                                $originalName,
+                                'public'
+                            );
+
+        }
+
+
+
+
+        // Create Student
+        $student = Student::create([
+
+            'name'=>$request->name,
+            'email'=>$request->email,
+            'department'=>$request->department,
+            'semester'=>$request->semester,
+            'image'=>$image,
+            'file'=>$file,
+
+        ]);
+
+
+
+        // Attach Multiple Courses
+        $student->courses()->attach($request->courses);
+
+
+
+        return redirect()
+                ->route('students.index')
+                ->with('success','Student Registered Successfully!');
+
     }
-
-   $file = null;
-
-if ($request->hasFile('file')) {
-
-    $originalName = $request->file('file')->getClientOriginalName();
-
-    $file = $request->file('file')->storeAs(
-        'files',
-        $originalName,
-        'public'
-    );
-
-}
-
-    Student::create([
-
-        'name' => $request->name,
-        'email' => $request->email,
-        'department' => $request->department,
-        'semester' => $request->semester,
-        'course_id' => $request->course_id,
-        'image' => $image,
-        'file' => $file,
-
-    ]);
-
-    return redirect()
-        ->route('students.index')
-        ->with('success', 'Student Registered Successfully!');
-}
 
 
 
@@ -101,69 +128,123 @@ if ($request->hasFile('file')) {
     // Show edit form
     public function edit(Student $student)
     {
+
         $courses = Course::all();
 
-        return view('students.edit', compact('student','courses'));
+
+        return view('students.edit',
+        compact('student','courses'));
+
     }
+
 
 
 
 
     // Update student
-   public function update(Request $request, Student $student)
-{
-    $request->validate([
+    public function update(Request $request, Student $student)
+    {
 
-        'name' => 'required',
-        'email' => 'required|email|unique:students,email,' . $student->id,
-        'department' => 'required',
-        'semester' => 'required|integer',
-        'course_id' => 'required|exists:courses,id',
-        'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-        'file' => 'nullable|mimes:pdf,doc,docx,ppt,pptx,zip|max:5120',
 
-    ]);
+        $request->validate([
 
-    // Keep old image if no new image is uploaded
-    $image = $student->image;
+            'name'=>'required',
 
-    if ($request->hasFile('image')) {
+            'email'=>'required|email|unique:students,email,' . $student->id,
 
-        $image = $request->file('image')->store('students', 'public');
+            'department'=>'required',
+
+            'semester'=>'required|integer',
+
+
+            'courses'=>'required|array',
+
+            'courses.*'=>'exists:courses,id',
+
+
+            'image'=>'nullable|image|mimes:jpg,jpeg,png|max:2048',
+
+            'file'=>'nullable|mimes:pdf,doc,docx,ppt,pptx,zip|max:5120',
+
+        ]);
+
+
+
+
+        // Old image
+        $image = $student->image;
+
+
+        if($request->hasFile('image'))
+        {
+
+            $image = $request->file('image')
+                             ->store('students','public');
+
+        }
+
+
+
+
+
+        // Old file
+        $file = $student->file;
+
+
+        if($request->hasFile('file'))
+        {
+
+            $originalName = $request->file('file')
+                                   ->getClientOriginalName();
+
+
+            $file = $request->file('file')
+                            ->storeAs(
+                                'files',
+                                $originalName,
+                                'public'
+                            );
+
+        }
+
+
+
+
+
+        // Update Student Data
+        $student->update([
+
+            'name'=>$request->name,
+
+            'email'=>$request->email,
+
+            'department'=>$request->department,
+
+            'semester'=>$request->semester,
+
+            'image'=>$image,
+
+            'file'=>$file,
+
+        ]);
+
+
+
+
+        // Update Multiple Courses
+        $student->courses()->sync($request->courses);
+
+
+
+        return redirect()
+                ->route('students.index')
+                ->with('success','Student Updated Successfully!');
 
     }
 
-    // Keep old file if no new file is uploaded
-    $file = $student->file;
 
-    if ($request->hasFile('file')) {
 
-        $originalName = $request->file('file')->getClientOriginalName();
 
-        $file = $request->file('file')->storeAs(
-            'files',
-            $originalName,
-            'public'
-        );
-
-    }
-
-    $student->update([
-
-        'name' => $request->name,
-        'email' => $request->email,
-        'department' => $request->department,
-        'semester' => $request->semester,
-        'course_id' => $request->course_id,
-        'image' => $image,
-        'file' => $file,
-
-    ]);
-
-    return redirect()
-        ->route('students.index')
-        ->with('success', 'Student Updated Successfully!');
-}
 
     // Delete student
     public function destroy(Student $student)
@@ -173,8 +254,9 @@ if ($request->hasFile('file')) {
 
 
         return redirect()
-            ->route('students.index')
-            ->with('success','Student Deleted Successfully!');
+                ->route('students.index')
+                ->with('success',
+                'Student Deleted Successfully!');
 
     }
 

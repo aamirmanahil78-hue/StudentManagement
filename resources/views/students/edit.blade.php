@@ -61,27 +61,51 @@
 
     <div class="mb-3">
 
-        <label>Course</label>
+    <label class="form-label">Select Courses</label>
 
-        <select name="course_id" class="form-select">
 
-            <option value="">Select Course</option>
+    @foreach($courses as $course)
 
-            @foreach($courses as $course)
+        <div class="form-check">
 
-                <option value="{{ $course->id }}"
-                    {{ $student->course_id == $course->id ? 'selected' : '' }}>
+            <input 
+                class="form-check-input"
+                type="checkbox"
+                name="courses[]"
+                value="{{ $course->id }}"
+                id="course{{ $course->id }}"
 
-                    {{ $course->course_name }}
+                {{ $student->courses->contains($course->id) ? 'checked' : '' }}
+            >
 
-                </option>
 
-            @endforeach
+            <label class="form-check-label" for="course{{ $course->id }}">
 
-        </select>
+                {{ $course->course_name }}
 
-    </div>
+            </label>
 
+
+        </div>
+
+    @endforeach
+
+
+    @error('courses')
+        <small class="text-danger">
+            {{ $message }}
+        </small>
+    @enderror
+
+
+    @error('courses.*')
+        <small class="text-danger">
+            {{ $message }}
+        </small>
+    @enderror
+
+
+</div>
     <div class="mb-3">
 
         <label class="form-label">

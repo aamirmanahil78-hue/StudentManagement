@@ -89,17 +89,17 @@
 
         <td>
 
-            @if($student->course)
+@foreach($student->courses as $course)
 
-                {{ $student->course->course_name }}
+    <span class="badge bg-primary">
 
-            @else
+        {{ $course->course_name }}
 
-                No Course
+    </span>
 
-            @endif
+@endforeach
 
-        </td>
+</td>
 
         <td>
 

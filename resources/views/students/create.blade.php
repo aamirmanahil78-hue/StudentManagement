@@ -12,13 +12,17 @@
 
         </div>
 
+
         <div class="card-body">
+
 
             <form action="{{ route('students.store') }}"
                   method="POST"
                   enctype="multipart/form-data">
 
                 @csrf
+
+
 
                 <div class="mb-3">
 
@@ -29,11 +33,20 @@
                            class="form-control"
                            value="{{ old('name') }}">
 
+
                     @error('name')
-                        <small class="text-danger">{{ $message }}</small>
+
+                        <small class="text-danger">
+                            {{ $message }}
+                        </small>
+
                     @enderror
 
                 </div>
+
+
+
+
 
                 <div class="mb-3">
 
@@ -44,11 +57,20 @@
                            class="form-control"
                            value="{{ old('email') }}">
 
+
                     @error('email')
-                        <small class="text-danger">{{ $message }}</small>
+
+                        <small class="text-danger">
+                            {{ $message }}
+                        </small>
+
                     @enderror
 
                 </div>
+
+
+
+
 
                 <div class="mb-3">
 
@@ -59,11 +81,20 @@
                            class="form-control"
                            value="{{ old('department') }}">
 
+
                     @error('department')
-                        <small class="text-danger">{{ $message }}</small>
+
+                        <small class="text-danger">
+                            {{ $message }}
+                        </small>
+
                     @enderror
 
                 </div>
+
+
+
+
 
                 <div class="mb-3">
 
@@ -74,80 +105,180 @@
                            class="form-control"
                            value="{{ old('semester') }}">
 
+
                     @error('semester')
-                        <small class="text-danger">{{ $message }}</small>
+
+                        <small class="text-danger">
+                            {{ $message }}
+                        </small>
+
                     @enderror
 
                 </div>
 
+
+
+
+
+
+                <!-- Multiple Courses -->
+
                 <div class="mb-3">
 
-                    <label class="form-label">Course</label>
 
-                    <select name="course_id" class="form-select">
+                    <label class="form-label">
+                        Select Courses
+                    </label>
 
-                        <option value="">Select Course</option>
 
-                        @foreach($courses as $course)
 
-                            <option value="{{ $course->id }}"
-                                {{ old('course_id') == $course->id ? 'selected' : '' }}>
+                    @foreach($courses as $course)
+
+
+                        <div class="form-check">
+
+
+                            <input 
+                                class="form-check-input"
+                                type="checkbox"
+                                name="courses[]"
+                                value="{{ $course->id }}"
+                                id="course{{ $course->id }}"
+
+                                {{ in_array($course->id, old('courses', [])) ? 'checked' : '' }}
+                            >
+
+
+
+                            <label class="form-check-label"
+                                   for="course{{ $course->id }}">
+
 
                                 {{ $course->course_name }}
 
-                            </option>
 
-                        @endforeach
+                            </label>
 
-                    </select>
 
-                    @error('course_id')
-                        <small class="text-danger">{{ $message }}</small>
+                        </div>
+
+
+                    @endforeach
+
+
+
+
+
+                    @error('courses')
+
+                        <small class="text-danger">
+                            {{ $message }}
+                        </small>
+
                     @enderror
+
+
+
+
+
+                    @error('courses.*')
+
+                        <small class="text-danger">
+                            {{ $message }}
+                        </small>
+
+                    @enderror
+
+
 
                 </div>
 
+
+
+
+
+
+
+
+                <!-- Student Image -->
+
+
                 <div class="mb-3">
+
 
                     <label class="form-label">
                         Student Image
                     </label>
 
+
                     <input type="file"
                            name="image"
                            class="form-control">
 
+
+
                     @error('image')
+
                         <small class="text-danger">
                             {{ $message }}
                         </small>
+
                     @enderror
+
 
                 </div>
 
+
+
+
+
+
+
+
+                <!-- Student File -->
+
+
                 <div class="mb-3">
+
 
                     <label class="form-label">
                         Upload File
                     </label>
 
+
                     <input type="file"
                            name="file"
                            class="form-control">
 
+
+
                     @error('file')
+
                         <small class="text-danger">
                             {{ $message }}
                         </small>
+
                     @enderror
+
 
                 </div>
 
-                <button type="submit" class="btn btn-success">
+
+
+
+
+
+
+                <button type="submit"
+                        class="btn btn-success">
 
                     Register Student
 
                 </button>
+
+
+
+
 
                 <a href="{{ route('students.index') }}"
                    class="btn btn-secondary">
@@ -156,12 +287,19 @@
 
                 </a>
 
+
+
+
             </form>
+
 
         </div>
 
+
     </div>
 
+
 </div>
+
 
 @endsection

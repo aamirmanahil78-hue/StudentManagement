@@ -16,8 +16,8 @@ class Student extends Model
         'file'
     ];
 
-    public function course()
+    public function courses()
     {
-        return $this->belongsTo(Course::class);
-    }
+    return $this->belongsToMany(Course::class);
+   }
 }

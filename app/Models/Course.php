@@ -10,8 +10,8 @@ class Course extends Model
     protected $fillable = [
         'course_name'
     ];
-    public function students(): HasMany
-    {
-        return $this->hasMany(Student::class);
-    }
+public function students()
+{
+    return $this->belongsToMany(Student::class);
+}
 }
